@@ -24,7 +24,7 @@ class AuroraProvider implements IProvider {
 
     async init() {}
 
-    async resolvePair(pair: Pair): Promise<boolean> {
+    async resolvePair(pair: Pair): Promise<string | null> {
         try {
             let pairInfo = this.pairInfo.get(pair.contractAddress);
 
@@ -34,14 +34,14 @@ class AuroraProvider implements IProvider {
             }
 
             const answer = await resolveSources(pairInfo);
-            if (!answer) return false;
+            if (!answer) return null;
 
             await pairInfo.contract.transmit(answer);
 
-            return true;
+            return answer;
         } catch (error: any) {
             logger.error(`Could not resolve ${pair.description} - ${error.toString()}`);
-            return false;
+            return null;
         }
     }
 }

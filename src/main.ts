@@ -32,9 +32,9 @@ async function main() {
                 processingIndexes.add(index);
                 logger.debug(`Processing #${index} (${pair.description} - ${pair.contractAddress})`);
 
-                await provider.resolvePair(pair);
+                const answer = await provider.resolvePair(pair);
 
-                logger.debug(`Completed processing #${index}`);
+                logger.debug(`Completed processing #${index} with answer ${answer}`);
                 processingIndexes.delete(index);
             }, pair.interval);
         });
