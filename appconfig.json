@@ -1,12 +1,12 @@
 {
     "pairs": [
         {
-            "description": "ETH / USD",
-            "contractAddress": "0x7477b821E6a3c4d946b49Be9b4520ad7d195EC10",
+            "description": "Anyone can transmit() an answer to me, I'm a FluxPriceFeed without access control!",
+            "contractAddress": "0xb5c82C7F2a5a90b040f411fe7D80C154Cc082160",
             "sources": [
                 {
-                    "source_path": "base_experience",
-                    "end_point": "https://pokeapi.co/api/v2/pokemon/ditto"
+                    "source_path": "market_data.current_price.usd",
+                    "end_point": "https://api.coingecko.com/api/v3/coins/ethereum"
                 }
             ],
             "interval": 5000,
