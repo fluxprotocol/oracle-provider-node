@@ -1,4 +1,13 @@
 {
+    "networks": [
+        {
+            "type": "evm",
+            "networkId": "aurora",
+            "privateKeyEnvKey": "AURORA_PRIVATE_KEY",
+            "chainId": 1313161554,
+            "rpc": "https://mainnet.aurora.dev"
+        }
+    ],
     "pairs": [
         {
             "description": "Anyone can transmit() an answer to me, I'm a FluxPriceFeed without access control!",
@@ -10,7 +19,7 @@
                 }
             ],
             "interval": 5000,
-            "network": "aurora"
+            "networkId": "aurora"
         }
     ]
 }

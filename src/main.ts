@@ -15,7 +15,14 @@ async function main() {
         });
 
         const appConfig: AppConfig = JSON.parse((await readFile(APP_CONFIG_LOCATION)).toString('utf-8'));
-        const providers = AVAILABLE_PROVIDERS.map(provider => new provider());
+
+        const providers = appConfig.networks.map(network => {
+            const provider = AVAILABLE_PROVIDERS.find(p => p.type === network.type);
+            if (!provider) throw new Error(`Could not find provider ${network.type}`);
+
+            return new provider(network);
+        });
+
         await Promise.all(providers.map(p => p.init()));
 
         const processingIndexes: Set<number> = new Set();
@@ -26,8 +33,8 @@ async function main() {
                     return;
                 }
 
-                const provider = providers.find(p => p.id === pair.network);
-                if (!provider) throw new Error(`Could not find provider ${pair.network}`);
+                const provider = providers.find(p => p.networkId === pair.networkId);
+                if (!provider) throw new Error(`Could not find provider ${pair.networkId}`);
 
                 processingIndexes.add(index);
                 logger.debug(`Processing #${index} (${pair.description} - ${pair.contractAddress})`);

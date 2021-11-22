@@ -8,9 +8,20 @@ export interface Pair {
     contractAddress: string;
     sources: SourceInfo[];
     interval: number;
-    network: string;
+    networkId: string;
 }
+
+export interface EvmNetwork {
+    type: "evm";
+    networkId?: string;
+    privateKeyEnvKey?: string;
+    chainId?: number;
+    rpc?: string;
+}
+
+export type Network = EvmNetwork;
 
 export default interface AppConfig {
     pairs: Pair[];
+    networks: Network[];
 }
