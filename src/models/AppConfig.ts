@@ -5,10 +5,12 @@ export interface SourceInfo {
 
 export interface Pair {
     description: string;
+    pair: string;
     contractAddress: string;
     sources: SourceInfo[];
     interval: number;
     networkId: string;
+    defaultDecimals?: number;
 }
 
 export interface EvmNetwork {
@@ -19,7 +21,19 @@ export interface EvmNetwork {
     rpc?: string;
 }
 
-export type Network = EvmNetwork;
+export interface NearNetwork {
+    type: "near";
+    networkId?: string;
+    credentialsStorePathEnvKey?: string;
+    privateKeyEnvKey?: string;
+    networkType?: string;
+    rpc?: string;
+    accountId?: string;
+    maxGas?: string;
+    storageDeposit?: string;
+}
+
+export type Network = EvmNetwork | NearNetwork;
 
 export default interface AppConfig {
     pairs: Pair[];

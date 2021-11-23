@@ -9,7 +9,9 @@ export interface EvmConfig {
 }
 
 export function validateEvmConfig(networkConfig: Network, env: NodeJS.ProcessEnv = {}) {
-
+    if (networkConfig.type !== 'evm') {
+        throw new Error('type should be evm');
+    }
 
     if (!env[networkConfig.privateKeyEnvKey ?? '']) {
         throw new Error(`privateKeyEnvKey option "${networkConfig.privateKeyEnvKey}" is required for ${PROVIDER_NAME}`);
@@ -25,6 +27,10 @@ export function validateEvmConfig(networkConfig: Network, env: NodeJS.ProcessEnv
 }
 
 export function parseEvmConfig(networkConfig: Network, env: NodeJS.ProcessEnv = {}): EvmConfig {
+    if (networkConfig.type !== 'evm') {
+        throw new Error('Type should be evm');
+    }
+
     return {
         privateKey: env[networkConfig.privateKeyEnvKey ?? ''] ?? '',
         chainId: Number(networkConfig.chainId) ?? 0,

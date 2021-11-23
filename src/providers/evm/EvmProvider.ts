@@ -42,7 +42,7 @@ class EvmProvider extends IProvider {
 
             return answer;
         } catch (error: any) {
-            logger.error(`[${pair.networkId}] Could not resolve ${pair.description} - ${error.toString()}`);
+            logger.error(`[${pair.networkId}] Could not resolve ${pair.pair} - ${error.toString()}`);
             return null;
         }
     }

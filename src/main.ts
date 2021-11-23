@@ -37,7 +37,7 @@ async function main() {
                 if (!provider) throw new Error(`Could not find provider ${pair.networkId}`);
 
                 processingIndexes.add(index);
-                logger.debug(`Processing #${index} (${pair.description} - ${pair.contractAddress})`);
+                logger.debug(`Processing #${index} (${pair.pair} - ${pair.contractAddress})`);
 
                 const answer = await provider.resolvePair(pair);
 
