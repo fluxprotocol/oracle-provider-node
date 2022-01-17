@@ -22,7 +22,7 @@
         {
             "description": "Anyone can transmit() an answer to me, I'm a FluxPriceFeed without access control!",
             "pair": "ETH / USD",
-            "contractAddress": "0xb5c82C7F2a5a90b040f411fe7D80C154Cc082160",
+            "contractAddress": "0x8BAac7F07c86895cd017C8a2c7d3C72cF9f1051F",
             "sources": [
                 {
                     "source_path": "market_data.current_price.usd",
