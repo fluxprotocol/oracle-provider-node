@@ -1,6 +1,6 @@
 import { JsonRpcProvider } from "@ethersproject/providers";
 import { Wallet } from "@ethersproject/wallet";
-import { Network, Pair } from "../../models/AppConfig";
+import { Batch, Network, Pair } from "../../models/AppConfig";
 import IProvider from "../IProvider";
 import { EvmConfig, parseEvmConfig, validateEvmConfig } from "./EvmConfig";
 import { EvmPairInfo, createPriceFeedContract } from "./EvmContract";
@@ -45,6 +45,10 @@ class EvmProvider extends IProvider {
             logger.error(`[${pair.networkId}] Could not resolve ${pair.pair} - ${error.toString()}`);
             return null;
         }
+    }
+
+    async resolveBatch(batch: Batch): Promise<string | null> {
+        return this.resolvePair(batch.pairs[0]);
     }
 }
 

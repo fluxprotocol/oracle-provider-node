@@ -1,11 +1,12 @@
 import { Account } from "near-api-js";
-import { NearNetwork, Network, Pair } from "../../models/AppConfig";
+import { Batch, createPairId, NearNetwork, Network, Pair } from "../../models/AppConfig";
 import IProvider from "../IProvider";
 import logger from '../../services/LoggerService';
 import { connectToNear, getAccount, isTransactionFailure, validateNearConfig } from "./NearConnectService";
 import { resolveSources } from "../../vm";
 import { BN } from "bn.js";
-import { getDecimalsForPair, pushDataOnPair } from "./NearPairService";
+import { createNearActionForPair, createPair, getDecimalsForPair, pushDataOnPair } from "./NearPairService";
+import { Action } from "near-api-js/lib/transaction";
 
 export default class NearProvider extends IProvider {
     static type = 'near';
@@ -29,30 +30,55 @@ export default class NearProvider extends IProvider {
         this.account = await getAccount(near, this.networkConfig.accountId ?? '');
     }
 
-    async resolvePair(pair: Pair): Promise<string | null> {
+    async resolveBatch(batch: Batch): Promise<string | null> {
         try {
-            // TODO: Resolve decimals
             if (!this.account) {
-                logger.error(`[${pair.networkId}] No logged in account found`);
+                logger.error(`[${batch.networkId}] No logged in account found`);
                 return null;
             }
 
-            const info = await getDecimalsForPair(pair, this.account);
-            const answer = await resolveSources({
-                ...pair,
-                decimals: info.decimals,
+            const answers: string[] = [];
+
+            const actions = await Promise.all(batch.pairs.map(async (pair) => {
+                const decimalsInfo = await getDecimalsForPair(pair, this.account!);
+                const answer = await resolveSources({
+                    ...pair,
+                    decimals: decimalsInfo.decimals,
+                });
+
+                if (!answer) return null;
+
+                if (!decimalsInfo.pairExists) {
+                    const created = await createPair({
+                        ...pair,
+                        decimals: decimalsInfo.decimals,
+                    }, answer, this.nearConfig, this.account!);
+
+                    if (!created) return null;
+                }
+
+                answers.push(`"${pair.pair}->${answer}"`);
+
+                return createNearActionForPair({
+                    ...pair,
+                    decimals: decimalsInfo.decimals,
+                }, answer, this.nearConfig, batch.pairs.length);
+            }));
+
+            // @ts-ignore
+            const txOutcome = await this.account.signAndSendTransaction({
+                receiverId: batch.contractAddress,
+                actions: actions.filter(action => action !== null) as Action[],
             });
 
-            if (!answer) return null;
+            if (isTransactionFailure(txOutcome)) {
+                logger.error(`[${createPairId(batch)}] Something went wrong during updating of price`);
+                return null;
+            }
 
-            await pushDataOnPair({
-                ...pair,
-                decimals: info.decimals,
-            }, answer, info.pairExists, this.nearConfig, this.account);
-
-            return answer;
+            return answers.join(',');
         } catch (error: any) {
-            logger.error(`[${pair.networkId}] Could not resolve ${pair.pair} - ${error.toString()}`);
+            logger.error(`[${batch.networkId}] Could not resolve batch ${createPairId(batch)} - ${error.toString()}`);
             return null;
         }
     }

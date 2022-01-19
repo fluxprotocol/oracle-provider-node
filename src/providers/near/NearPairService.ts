@@ -1,5 +1,6 @@
 import { BN } from "bn.js";
-import { Account } from "near-api-js";
+import { Account, transactions } from "near-api-js";
+import { Action } from "near-api-js/lib/transaction";
 import { DEFAULT_DECIMALS } from "../../config";
 import { NearNetwork, Pair } from "../../models/AppConfig";
 import PairInfo from "../../models/PairInfo";
@@ -9,6 +10,21 @@ import { isTransactionFailure } from "./NearConnectService";
 
 const DEFAULT_MAX_GAS = '300000000000000';
 const DEFAULT_STORAGE_DEPOSIT = '300800000000000000000000';
+
+export interface TransactionViewOptions {
+    methodName: string;
+    args?: object;
+}
+
+export interface TransactionCallOptions extends TransactionViewOptions {
+    gas: string;
+    amount: string;
+}
+
+export interface TransactionOption {
+    receiverId: string;
+    transactionOptions: TransactionCallOptions[];
+}
 
 export async function getDecimalsForPair(pair: Pair, account: Account): Promise<{ pairExists: boolean, decimals: number }> {
     try {
@@ -37,25 +53,39 @@ export async function getDecimalsForPair(pair: Pair, account: Account): Promise<
     }
 }
 
-export async function pushDataOnPair(pair: PairInfo, price: string, pairExists: boolean, nearConfig: NearNetwork, account: Account): Promise<boolean> {
-    // Creating the pair
+export async function createPair(pair: PairInfo, price: string, nearConfig: NearNetwork, account: Account) {
     try {
-        if (!pairExists) {
-            await account.functionCall({
-                methodName: 'create_pair',
-                contractId: pair.contractAddress,
-                args: {
-                    pair: pair.pair,
-                    decimals: pair.defaultDecimals,
-                    initial_price: price,
-                },
-                gas: new BN(nearConfig.maxGas ?? DEFAULT_MAX_GAS),
-                attachedDeposit: new BN(nearConfig.storageDeposit ?? DEFAULT_STORAGE_DEPOSIT),
-            });
-        }
+        await account.functionCall({
+            methodName: 'create_pair',
+            contractId: pair.contractAddress,
+            args: {
+                pair: pair.pair,
+                decimals: pair.defaultDecimals,
+                initial_price: price,
+            },
+            gas: new BN(nearConfig.maxGas ?? DEFAULT_MAX_GAS),
+            attachedDeposit: new BN(nearConfig.storageDeposit ?? DEFAULT_STORAGE_DEPOSIT),
+        });
+
+        return true;
     } catch (error) {
         logger.warn(`[${pair.contractAddress}] Pair could not be created, ${pair.pair}: ${error}`);
+        return false;
     }
+}
+
+export function createNearActionForPair(pair: PairInfo, price: string, nearConfig: NearNetwork, totalPairsInBatch: number): Action {
+    const gas = new BN(nearConfig.maxGas ?? DEFAULT_MAX_GAS);
+
+    return transactions.functionCall('push_data', {
+        pair: pair.pair,
+        price,
+    }, gas.div(new BN(totalPairsInBatch)), new BN('0'));
+}
+
+export async function pushDataOnPair(pair: PairInfo, price: string, pairExists: boolean, nearConfig: NearNetwork, account: Account): Promise<boolean> {
+    // Creating the pair
+
 
     try {
         const transactionOutcome = await account.functionCall({

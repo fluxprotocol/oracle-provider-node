@@ -1,0 +1,50 @@
+{
+    "networks": [
+        {
+            "type": "evm",
+            "networkId": "aurora",
+            "privateKeyEnvKey": "AURORA_PRIVATE_KEY",
+            "chainId": 1313161554,
+            "rpc": "https://mainnet.aurora.dev"
+        },
+        {
+            "type": "near",
+            "networkId": "near-testnet",
+            "credentialsStorePathEnvKey": "NEAR_CREDENTIALS_STORE_PATH",
+            "networkType": "testnet",
+            "rpc": "https://rpc.testnet.near.org",
+            "maxGas": "300000000000000",
+            "accountId": "{{YOUR_ACCOUNT_ID_HERE}}",
+            "storageDeposit": "300800000000000000000000"
+        }
+    ],
+    "pairs": [
+        {
+            "description": "Anyone can transmit() an answer to me, I'm a FluxPriceFeed without access control!",
+            "pair": "ETH / USD",
+            "contractAddress": "0xb5c82C7F2a5a90b040f411fe7D80C154Cc082160",
+            "sources": [
+                {
+                    "source_path": "market_data.current_price.usd",
+                    "end_point": "https://api.coingecko.com/api/v3/coins/ethereum"
+                }
+            ],
+            "interval": 5000,
+            "networkId": "aurora"
+        },
+        {
+            "description": "ETH / USD for NEAR",
+            "pair": "ETH / USD",
+            "contractAddress": "fpo3.franklinwaller2.testnet",
+            "sources": [
+                {
+                    "source_path": "market_data.current_price.usd",
+                    "end_point": "https://api.coingecko.com/api/v3/coins/ethereum"
+                }
+            ],
+            "interval": 5000,
+            "networkId": "near-testnet",
+            "defaultDecimals": 6
+        }
+    ]
+}

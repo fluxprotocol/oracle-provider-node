@@ -1,10 +1,10 @@
-import { createPairId, Pair } from "../models/AppConfig";
+import { Batch, createPairId, isBatch, Pair } from "../models/AppConfig";
 import IProvider from "../providers/IProvider";
 import logger from './LoggerService';
 
 
 export default class NetworkQueue {
-    queue: Pair[] = [];
+    queue: Batch[] = [];
     processingIds: Set<string> = new Set();
     intervalId?: NodeJS.Timer;
     public id: string;
@@ -13,8 +13,8 @@ export default class NetworkQueue {
         this.id = provider.networkId;
     }
 
-    has(pair: Pair): boolean {
-        const id = createPairId(pair);
+    has(batch: Batch): boolean {
+        const id = createPairId(batch);
         const inQueue = this.queue.some(item => createPairId(item) === id);
 
         if (inQueue) return true;
@@ -22,10 +22,10 @@ export default class NetworkQueue {
         return this.processingIds.has(id);
     }
 
-    add(pair: Pair) {
-        if (this.has(pair)) return;
-        this.queue.push(pair);
-        logger.debug(`[${this.id}] Added "${createPairId(pair)}" to queue`);
+    add(batch: Batch) {
+        if (this.has(batch)) return;
+        this.queue.push(batch);
+        logger.debug(`[${this.id}] Added "${createPairId(batch)}" to queue`);
     }
 
     start() {
@@ -43,7 +43,7 @@ export default class NetworkQueue {
 
             logger.debug(`[${this.id}] Processing ${id}`);
 
-            const answer = await this.provider.resolvePair(pair);
+            const answer = await this.provider.resolveBatch(pair);
 
             logger.debug(`[${this.id}] Completed processing "${id}" with answer ${answer}`);
             this.processingIds.delete(id);

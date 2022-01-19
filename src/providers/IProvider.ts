@@ -1,4 +1,4 @@
-import { Network, Pair } from "../models/AppConfig";
+import { Batch, Network, Pair } from "../models/AppConfig";
 export default class IProvider {
     static type = "iprovider";
     networkId: string;
@@ -8,5 +8,6 @@ export default class IProvider {
     }
 
     init(): Promise<void> { return Promise.resolve() };
-    resolvePair(pair: Pair): Promise<string | null> { return Promise.resolve(null) }
+    resolvePair(pair: Pair): Promise<string | null> { throw new Error('Not implemented'); }
+    resolveBatch(batch: Batch): Promise<string | null> { throw new Error('Batching is not supported by this provider'); }
 }
