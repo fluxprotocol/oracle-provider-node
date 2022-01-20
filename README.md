@@ -38,7 +38,8 @@ In the `appconfig.json` Make sure if you are using NEAR to change the accountId 
 
 In the `.env` file you just created change the `NEAR_CREDENTIALS_STORE_PATH` to the root of the `near-credentials` folder. (For example `/home/myname/.near-credentials/`).
 
-Near does not require a new contract deployment for each pair. Each pair is generated automaticly when you push a new pair. See [Contract addresses for NEAR](#contract-addresses)
+Near does not require a new contract deployment for each pair. Each pair is generated automaticly when you push a new pair. See [Contract addresses for NEAR](#contract-addresses) 
+Near is also the only one to support batching of transactions, making it cheaper for you to push data on chain. Please see [Batching](#batching)  
 
 # EVM Setup
 
@@ -96,6 +97,7 @@ Example:
 
 #### accessing / generating NEAR private keys
 There's multiple ways to go about this. The simplest method would be to create, or sign in to, a NEAR account using the [near web wallet](https://wallet.near.org). And then calling `NEAR_ENV={NETWORK} near login` and following the steps provided by the CLI. This will generate a access keys in `~/.near-credentials/{NETWORK}/{MY_ACCOUNT}.near.json` which can then be copied into any environment.
+We would also recommend for you to check out batching of transactions, this makes pushing data on chain be done 1 transaction instead of multiple saving you gas. See [Batching](#batching) for more information.
 
 #### contract addresses
 |Network|Contract address|
@@ -148,6 +150,57 @@ Pairs include information for a specific pair such as which sources to fetch fro
 |interval|number|Interval between updates.|
 |networkId|string|The id of the network in your `"networks"` configuration.|
 |defaultDecimals|number|If there are no decimals configured, the node will use and submit a number containing this many decimals. Defaults to `6`|
+
+## Batching
+
+Batching allows you to push multiple price pushes in one transaction. This is only supported by the NEAR network. We recommend to only put around 20 price pairs in one batch. This has to do with the gaslimit of NEAR. More could be fit in but this should be tested on your own.
+
+|Key|Type|Description|
+|---|---|---|
+|description|string|Allows you to identify which batch is currently processing. Required|
+|interval|number|The interval the batch should be triggered at|
+|networkId|string|The id of the network in your `"networks"` configuration.|
+|pairs|`Pair[]`|An array of `Pair`. See above what kind of settings are required for those. Notice that settings like `interval` are ignored, since they are part of the batch.
+
+Example:
+
+```JSON
+{
+    "batches": [
+        {
+            "description": "Price data for NEAR",
+            "contractAddress": "fpo3.franklinwaller2.testnet",
+            "interval": 60000,
+            "networkId": "near-testnet",
+            "pairs": [
+                {
+                    "description": "ETH / USD for NEAR",
+                    "pair": "ETH / USD",
+                    "sources": [
+                        {
+                            "source_path": "market_data.current_price.usd",
+                            "end_point": "https://api.coingecko.com/api/v3/coins/ethereum"
+                        }
+                    ],
+                    "defaultDecimals": 6
+                },
+                {
+                    "description": "NEAR / USD for NEAR",
+                    "pair": "NEAR / USD",
+                    "sources": [
+                        {
+                            "source_path": "market_data.current_price.usd",
+                            "end_point": "https://api.coingecko.com/api/v3/coins/near"
+                        }
+                    ],
+                    "defaultDecimals": 6
+                }
+            ]
+        }
+    ]
+}
+
+```
 
 ### Source
 
