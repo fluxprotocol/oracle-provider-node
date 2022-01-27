@@ -1,5 +1,6 @@
-import { createPairId, OracleRequest } from "../models/AppConfig";
+import { createPairId } from "../models/AppConfig";
 import { Block } from "../models/Block";
+import { OracleRequest } from "../models/OracleRequest";
 import logger from "./LoggerService";
 
 type Callback = (request: OracleRequest) => any;

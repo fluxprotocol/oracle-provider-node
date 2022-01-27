@@ -96,7 +96,7 @@ async function main() {
 
         logger.info('Creating listeners');
 
-        searchRequests(appConfig, queues);
+        await searchRequests(appConfig, queues);
 
         logger.info('🚀 Booted');
 

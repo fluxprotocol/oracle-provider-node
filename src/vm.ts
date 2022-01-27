@@ -28,7 +28,6 @@ export function convertOldSourcePath(sourcePath: string): string {
     return result;
 }
 
-
 let cachedDefaultBinary: Buffer;
 
 export const WASM_LOCATION = process.env.WASM_LOCATION ?? './basic-fetch.wasm';

@@ -1,6 +1,6 @@
 import { JsonRpcProvider } from "@ethersproject/providers";
 import { Wallet } from "@ethersproject/wallet";
-import { Batch, Network, OracleRequest, Request } from "../../models/AppConfig";
+import { Batch, Network, Request } from "../../models/AppConfig";
 import IProvider from "../IProvider";
 import { EvmConfig, parseEvmConfig, validateEvmConfig } from "./EvmConfig";
 import { EvmPairInfo, createPriceFeedContract, fetchOracleRequests, createOracleContract } from "./EvmContract";
@@ -12,6 +12,7 @@ import NetworkQueue from "../../services/NetworkQueue";
 import { Block } from "../../models/Block";
 import RequestConfirmationsDelayer from "../../services/RequestConfirmationsDelayer";
 import { ResolveRequest } from "../../models/ResolveRequest";
+import { OracleRequest } from "../../models/OracleRequest";
 
 
 class EvmProvider extends IProvider {

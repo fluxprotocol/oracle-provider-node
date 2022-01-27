@@ -1,24 +1,8 @@
-import Big from "big.js";
-import { Block } from "./Block";
 import { BridgeChainId } from "./BridgeChainId";
+import { OracleRequest } from "./OracleRequest";
 import { ResolveRequest } from "./ResolveRequest";
 import { SourceInfo } from "./SourceInfo";
 
-export interface OracleRequest {
-    requestId: Big;
-    toNetwork: {
-        bridgeChainId: BridgeChainId;
-        type: "evm" | "near";
-    };
-    fromOracleAddress: string;
-    toContractAddress: string;
-    confirmationsRequired: number;
-    confirmations: number;
-    /** The block the request is from */
-    block: Block;
-    args: string[];
-    type: "request"
-}
 
 export interface PushRequest {
     description: string;

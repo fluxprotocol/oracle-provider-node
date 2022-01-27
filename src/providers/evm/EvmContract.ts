@@ -1,8 +1,9 @@
 import { Contract } from '@ethersproject/contracts';
 import { Wallet } from '@ethersproject/wallet';
 import Big from 'big.js';
-import { createPairId, OracleRequest, Request } from '../../models/AppConfig';
+import { createPairId, Request } from '../../models/AppConfig';
 import { BridgeChainId } from '../../models/BridgeChainId';
+import { OracleRequest } from '../../models/OracleRequest';
 import PairInfo from '../../models/PairInfo';
 import logger from '../../services/LoggerService';
 import { EvmConfig } from './EvmConfig';

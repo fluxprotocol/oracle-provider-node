@@ -1,5 +1,6 @@
 import Big from "big.js";
-import { Batch, createPairId, isOracleRequest, isResolve, OracleRequest } from "../models/AppConfig";
+import { Batch, createPairId, isOracleRequest, isResolve } from "../models/AppConfig";
+import { createRequestWavepointInDatabase, OracleRequest } from "../models/OracleRequest";
 import { ResolveRequest } from "../models/ResolveRequest";
 import IProvider from "../providers/IProvider";
 import logger from './LoggerService';
@@ -55,16 +56,19 @@ export default class NetworkQueue {
             if (isOracleRequest(pair)) {
                 answer = await this.provider.resolveRequest(this.provider.networkConfig.oracleContractAddress, pair);
                 // Finding the origin queue to send back a request to mark the request as done
-                const originQueue = this.networkQueues.find(q => q.provider.networkConfig.type === pair.block.network.type && q.provider.networkConfig.bridgeChainId === pair.block.network.bridgeChainId);
-                const resolveRequest: ResolveRequest = {
-                    requestId: pair.requestId,
-                    type: 'resolve',
-                };
+                // const originQueue = this.networkQueues.find(q => q.provider.networkConfig.type === pair.block.network.type && q.provider.networkConfig.bridgeChainId === pair.block.network.bridgeChainId);
 
-                originQueue?.add(resolveRequest);
+                await createRequestWavepointInDatabase(pair, true);
+
+                // const resolveRequest: ResolveRequest = {
+                //     requestId: pair.requestId,
+                //     type: 'resolve',
+                // };
+
+                // originQueue?.add(resolveRequest);
             } else if (isResolve(pair)) {
                 // Just sending a resolve mark back to
-                await this.provider.markAsResolved(this.provider.networkConfig.oracleContractAddress, pair);
+                // await this.provider.markAsResolved(this.provider.networkConfig.oracleContractAddress, pair);
             } else {
                 answer = await this.provider.resolveBatch(pair);
             }

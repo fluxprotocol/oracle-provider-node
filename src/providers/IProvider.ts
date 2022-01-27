@@ -1,4 +1,5 @@
-import { Batch, Network, OracleRequest, Request } from "../models/AppConfig";
+import { Batch, Network, Request } from "../models/AppConfig";
+import { OracleRequest } from "../models/OracleRequest";
 import { ResolveRequest } from "../models/ResolveRequest";
 import NetworkQueue from "../services/NetworkQueue";
 export default class IProvider {
