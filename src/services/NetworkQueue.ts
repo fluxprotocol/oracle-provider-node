@@ -58,8 +58,6 @@ export default class NetworkQueue {
                 // Finding the origin queue to send back a request to mark the request as done
                 // const originQueue = this.networkQueues.find(q => q.provider.networkConfig.type === pair.block.network.type && q.provider.networkConfig.bridgeChainId === pair.block.network.bridgeChainId);
 
-                await createRequestWavepointInDatabase(pair, true);
-
                 // const resolveRequest: ResolveRequest = {
                 //     requestId: pair.requestId,
                 //     type: 'resolve',

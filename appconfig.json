@@ -6,8 +6,9 @@
             "privateKeyEnvKey": "AURORA_PRIVATE_KEY",
             "chainId": 1313161554,
             "rpc": "https://mainnet.aurora.dev",
+            "wssRpc": "wss://1a67ac2cb6d7.relayer.mainnet.partners.aurora.dev",
             "bridgeChainId": 3,
-            "oracleContractAddress": "0x8BAac7F07c86895cd017C8a2c7d3C72cF9f1051F"
+            "oracleContractAddress": "0xE5222a920E6bE9530C958D17b7e5Df4B51a380d1"
         },
         {
             "type": "near",
@@ -18,11 +19,21 @@
             "maxGas": "300000000000000",
             "accountId": "franklinwaller2.testnet",
             "storageDeposit": "300800000000000000000000"
+        },
+        {
+            "type": "evm",
+            "networkId": "goerli",
+            "privateKeyEnvKey": "AURORA_PRIVATE_KEY",
+            "chainId": 5,
+            "rpc": "https://goerli.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161",
+            "wssRpc": "wss://goerli-light.eth.linkpool.io/ws",
+            "bridgeChainId": 4,
+            "oracleContractAddress": "0xE5222a920E6bE9530C958D17b7e5Df4B51a380d1"
         }
     ],
     "requestListeners": [
         {
-            "contractAddress": "0x8BAac7F07c86895cd017C8a2c7d3C72cF9f1051F",
+            "contractAddress": "0xE5222a920E6bE9530C958D17b7e5Df4B51a380d1",
             "networkId": "aurora",
             "interval": 5000,
             "bridgeChainId": 3

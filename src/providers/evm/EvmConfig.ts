@@ -9,6 +9,7 @@ export interface EvmConfig {
     chainId: number;
     blockPollingInterval: number;
     bridgeChainId: BridgeChainId;
+    wssRpc?: string;
 }
 
 export function validateEvmConfig(networkConfig: Network, env: NodeJS.ProcessEnv = {}) {
@@ -40,5 +41,6 @@ export function parseEvmConfig(networkConfig: Network, env: NodeJS.ProcessEnv = 
         rpc: networkConfig.rpc ?? '',
         blockPollingInterval: networkConfig.blockPollingInterval ?? 5_000,
         bridgeChainId: networkConfig.bridgeChainId ?? 0,
+        wssRpc: networkConfig.wssRpc,
     };
 }

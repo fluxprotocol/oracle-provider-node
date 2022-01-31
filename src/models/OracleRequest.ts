@@ -11,8 +11,8 @@ export interface OracleRequest {
     };
     fromOracleAddress: string;
     toContractAddress: string;
-    confirmationsRequired: number;
-    confirmations: number;
+    confirmationsRequired: Big;
+    confirmations: Big;
     /** The block the request is from */
     block: Block;
     args: string[];

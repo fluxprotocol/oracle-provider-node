@@ -1,5 +1,5 @@
 import AppConfig from "./models/AppConfig";
-import { createOracleRequestId, createRequestWavepointInDatabase, findRequestWavepointInDatabase, OracleRequest } from "./models/OracleRequest";
+import { OracleRequest } from "./models/OracleRequest";
 import database from "./services/DatabaseService";
 import logger from "./services/LoggerService";
 import NetworkQueue from "./services/NetworkQueue";
@@ -18,40 +18,43 @@ function findQueueForRequest(request: OracleRequest, queues: NetworkQueue[]) {
     });
 }
 
-export async function searchRequests(appConfig: AppConfig, queues: NetworkQueue[]) {
-    // Since this is just a POC we are going to attach the database here..
-    // We will rewrite the FPO soon...
+function findOriginQueueForRequest(request: OracleRequest, queues: NetworkQueue[]) {
+    return queues.find((queue) => {
+        if (request.block.network.type !== queue.provider.networkConfig.type) {
+            return false;
+        }
 
-    const oracleAddresses: string[] = [];
+        if (request.block.network.bridgeChainId !== queue.provider.networkConfig.bridgeChainId) {
+            return false;
+        }
 
-    appConfig.networks?.forEach((network) => {
-        oracleAddresses.push(database.createOracleTableName(network.bridgeChainId, network.oracleContractAddress));
+        return true;
     });
+}
 
-    await database.startDatabase('./', 'fpo_db', oracleAddresses);
-
+export async function searchRequests(appConfig: AppConfig, queues: NetworkQueue[]) {
     async function onRequest(request: OracleRequest) {
-        const queue = findQueueForRequest(request, queues);
-        if (!queue) {
+        const destinationQueue = findQueueForRequest(request, queues);
+        const originQueue = findOriginQueueForRequest(request, queues);
+
+        if (!destinationQueue) {
             logger.error(`[${request.block.network.type}-${request.block.network.bridgeChainId}] Could not find network ${request.toNetwork.type} with chain id ${request.toNetwork.bridgeChainId}`);
             return;
         }
 
-        const wavePoint = await findRequestWavepointInDatabase(request);
-
-        if (wavePoint) {
-            // We already synced this block. No need to do any actions
-            if (wavePoint.block === request.block.number) {
-                return;
-            }
-
-            if (wavePoint.completed) {
-                return;
-            }
+        if (!originQueue) {
+            logger.error(`[${request.block.network.type}-${request.block.network.bridgeChainId}] Could not find network ${request.block.network.type} with chain id ${request.block.network.bridgeChainId}`);
+            return;
         }
 
-        await createRequestWavepointInDatabase(request, false);
-        queue.add(request);
+        const requestBlock = await originQueue.provider.getBlockByTag(request.block.number);
+
+        if (requestBlock?.hash !== request.block.hash) {
+            logger.error(`[${request.block.network.type}-${request.block.network.bridgeChainId}] Will not submit block since there was a fork`);
+            return;
+        }
+
+        destinationQueue.add(request);
     }
 
     appConfig.requestListeners?.map((listenerConfig) => {

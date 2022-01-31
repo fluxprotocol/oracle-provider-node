@@ -43,6 +43,7 @@ export interface EvmNetwork extends BlockBridigingNetwork {
     chainId?: number;
     rpc?: string;
     blockPollingInterval?: number;
+    wssRpc?: string;
 }
 
 export interface NearNetwork extends BlockBridigingNetwork {

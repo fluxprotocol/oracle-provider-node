@@ -3,10 +3,10 @@ import { Wallet } from "@ethersproject/wallet";
 import { Batch, Network, Request } from "../../models/AppConfig";
 import IProvider from "../IProvider";
 import { EvmConfig, parseEvmConfig, validateEvmConfig } from "./EvmConfig";
-import { EvmPairInfo, createPriceFeedContract, fetchOracleRequests, createOracleContract } from "./EvmContract";
+import { EvmPairInfo, createPriceFeedContract, fetchOracleRequests, createOracleContract, listenForEvents } from "./EvmContract";
 import logger from '../../services/LoggerService';
 import { resolveSources } from '../../vm';
-import { EvmBlock, getLatestBlock } from "./EvmRpcService";
+import { getBlockByNumber, getLatestBlock } from "./EvmRpcService";
 import { debouncedInterval } from "../../services/TimerUtils";
 import NetworkQueue from "../../services/NetworkQueue";
 import { Block } from "../../models/Block";
@@ -53,10 +53,13 @@ class EvmProvider extends IProvider {
     }
 
     async startFetching(oracleContract: string, interval: number): Promise<void> {
-        debouncedInterval(async () => {
-            const requests = await fetchOracleRequests(oracleContract, this.config, this.wallet);
+        listenForEvents(this.config, oracleContract, (requests) => {
             requests.forEach(r => this.delayer.addRequest(r));
-        }, interval);
+        });
+    }
+
+    async getBlockByTag(tag: string | number): Promise<Block | null> {
+        return getBlockByNumber(tag, this.config);
     }
 
     async resolvePair(pair: Request): Promise<string | null> {
@@ -80,22 +83,16 @@ class EvmProvider extends IProvider {
         }
     }
 
-    async markAsResolved(oracleContractAddress: string, resolve: ResolveRequest): Promise<void> {
-        const contract = createOracleContract(oracleContractAddress, this.wallet);
-
-        await contract.proceedUpdateBlockHeader(resolve.requestId.toString());
-    }
-
     async resolveRequest(oracleContractAddress: string, request: OracleRequest): Promise<string | null> {
         const contract = createOracleContract(oracleContractAddress, this.wallet);
 
-        const remoteChainId = request.block.network.bridgeChainId;
-        const oracle = oracleContractAddress;
+        const dstNetworkAddress = request.toContractAddress;
+        const srcChainId = request.block.network.bridgeChainId;
         const blockHash = request.block.hash;
-        const confirmations = request.confirmations;
+        const confirmations = request.confirmations.toString();
         const receiptRoot = request.block.receiptsRoot;
 
-        await contract.updateBlockHeader();
+        await contract.proceedUpdateBlockHeader(dstNetworkAddress, srcChainId, blockHash, confirmations, receiptRoot);
 
         return null;
     }

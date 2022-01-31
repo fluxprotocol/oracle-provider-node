@@ -1,3 +1,4 @@
+import Big from "big.js";
 import { createPairId } from "../models/AppConfig";
 import { Block } from "../models/Block";
 import { OracleRequest } from "../models/OracleRequest";
@@ -14,11 +15,14 @@ export default class RequestConfirmationsDelayer {
         this.currentBlock = block;
 
         this.requests.forEach((request) => {
-            const confirmations = block.number - request.block.number;
+            const confirmations = new Big(block.number).minus(request.block.number);
 
-            logger.debug(`[${request.block.network.type}-${request.block.network.bridgeChainId}] Request confirmed ${confirmations}/${request.confirmationsRequired}`);
+            logger.debug(`[${request.block.network.type}-${request.block.network.bridgeChainId}] Request confirmed ${confirmations.toString()}/${request.confirmationsRequired.toString()}`);
 
-            if (confirmations >= request.confirmationsRequired) {
+            if (request.confirmationsRequired.lte(confirmations)) {
+                // We should double check if the block number still match the same block hash.
+                // This is to double check block forks..
+
                 this.requests.delete(createPairId(request));
                 request.confirmations = confirmations;
                 this.callback(request);
