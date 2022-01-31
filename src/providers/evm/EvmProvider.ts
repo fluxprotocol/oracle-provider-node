@@ -94,7 +94,7 @@ class EvmProvider extends IProvider {
 
         await contract.proceedUpdateBlockHeader(dstNetworkAddress, srcChainId, blockHash, confirmations, receiptRoot);
 
-        return null;
+        return `b${blockHash}-r${receiptRoot}`;
     }
 
     async resolveBatch(batch: Batch): Promise<string | null> {

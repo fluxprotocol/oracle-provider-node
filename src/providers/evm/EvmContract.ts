@@ -1,7 +1,8 @@
 import { Contract } from '@ethersproject/contracts';
+import { Provider } from '@ethersproject/abstract-provider';
 import { WebSocketProvider } from '@ethersproject/providers';
 import { Wallet } from '@ethersproject/wallet';
-import { utils } from 'ethers';
+import { Signer, utils } from 'ethers';
 import Big from 'big.js';
 import { createPairId, Request } from '../../models/AppConfig';
 import { BridgeChainId } from '../../models/BridgeChainId';
@@ -11,8 +12,9 @@ import logger from '../../services/LoggerService';
 import { EvmConfig } from './EvmConfig';
 import { getBlockByNumber, getLatestBlock } from './EvmRpcService';
 import fluxAbi from './FluxPriceFeed.json';
-import layerZeroAbi from './LayerZeroAbi.json';
+import layerZeroAbi from './FluxLayerZeroOracle.json';
 import { sleep } from '../../services/TimerUtils';
+import web3 from 'web3';
 
 export interface EvmPairInfo extends PairInfo {
     contract: Contract;
@@ -31,8 +33,8 @@ export async function createPriceFeedContract(pair: Request, wallet: Wallet): Pr
     };
 }
 
-export function createOracleContract(oracleContract: string, wallet: Wallet) {
-    return new Contract(oracleContract, layerZeroAbi.abi, wallet);
+export function createOracleContract(oracleContract: string, wallet: Signer | Provider) {
+    return new Contract(oracleContract, layerZeroAbi, wallet);
 }
 
 interface ContractRequest {
@@ -86,21 +88,29 @@ export async function listenForEvents(config: EvmConfig, address: string, onRequ
         const provider = new WebSocketProvider(config.wssRpc, {
             chainId: config.chainId,
             name: config.chainId.toString(),
+
         });
 
-        const layerZeroInterface = new utils.Interface(layerZeroAbi.abi);
+        const wallet = new Wallet(config.privateKey, provider);
 
-        provider._subscribe('logs', ['logs', {
-            address,
-        }], async (transactions: any[]) => {
-            const requestsPromises: Promise<OracleRequest | null>[] = transactions.map(async (tx) => {
-                const log = layerZeroInterface.parseLog(tx);
+        const layerZeroInterface = new utils.Interface(layerZeroAbi);
+        const oracleContract = createOracleContract(address, provider);
+
+        const topic = layerZeroInterface.getEventTopic('NotifyOracleOfBlock');
+
+        const wssProvider = new web3.providers.WebsocketProvider(config.wssRpc);
+        const w3 = new web3(wssProvider);
+
+        // @ts-ignore
+        const cont = new w3.eth.Contract(layerZeroAbi, address);
+
+        cont.events.NotifyOracleOfBlock().on('data', async (event: any) => {
+            const requestsPromises: Promise<OracleRequest | null>[] = [event].map(async (tx) => {
                 const blockNum = parseInt(tx.blockNumber);
                 await sleep(2000);
-                console.log('[] tx -> ', tx);
                 const block = await getBlockByNumber(tx.blockHash, config, 'blockHash');
 
-                if (log.name !== 'NotifyOracleOfBlock') {
+                if (tx.event !== 'NotifyOracleOfBlock') {
                     return null;
                 }
 
@@ -113,13 +123,13 @@ export async function listenForEvents(config: EvmConfig, address: string, onRequ
                     requestId: new Big(0),
                     block,
                     args: [],
-                    confirmationsRequired: new Big(log.args.requiredBlockConfirmations.toString()),
+                    confirmationsRequired: new Big(tx.returnValues.requiredBlockConfirmations),
                     confirmations: new Big(0),
                     fromOracleAddress: address,
-                    toContractAddress: log.args.layerZeroContract,
+                    toContractAddress: tx.returnValues.layerZeroContract,
                     toNetwork: {
                         type: 'evm',
-                        bridgeChainId: log.args.chainId,
+                        bridgeChainId: Number(tx.returnValues.chainId),
                     },
                     type: 'request',
                 };
@@ -128,9 +138,57 @@ export async function listenForEvents(config: EvmConfig, address: string, onRequ
             });
 
             const requests = await Promise.all(requestsPromises);
-            console.log('[] requests -> ', requests);
             onRequests(requests.filter(r => r !== null) as OracleRequest[]);
         });
+        // console.log('[] topic -> ', topic);
+        // oracleContract.on({
+        //     address: address,
+        //     topics: [topic],
+        // }, (params) => {
+        //     console.log('[HEYOOOO] params -> ', params);
+        // })
+
+        // await provider._subscribe('logs', ['logs', {
+        //     address,
+        // }], async (transactions: any[]) => {
+        //     const requestsPromises: Promise<OracleRequest | null>[] = transactions.map(async (tx) => {
+        //         const log = layerZeroInterface.parseLog(tx);
+        //         const blockNum = parseInt(tx.blockNumber);
+        //         await sleep(2000);
+        //         const block = await getBlockByNumber(tx.blockHash, config, 'blockHash');
+
+        //         console.log('[] log -> ', log);
+
+        //         if (log.name !== 'NotifyOracleOfBlock') {
+        //             return null;
+        //         }
+
+        //         if (!block) {
+        //             logger.error(`[listenForEvent] Could not find block ${blockNum} for chainId: ${config.chainId}`);
+        //             return null;
+        //         }
+
+        //         const request: OracleRequest = {
+        //             requestId: new Big(0),
+        //             block,
+        //             args: [],
+        //             confirmationsRequired: new Big(log.args.requiredBlockConfirmations.toString()),
+        //             confirmations: new Big(0),
+        //             fromOracleAddress: address,
+        //             toContractAddress: log.args.layerZeroContract,
+        //             toNetwork: {
+        //                 type: 'evm',
+        //                 bridgeChainId: log.args.chainId,
+        //             },
+        //             type: 'request',
+        //         };
+
+        //         return request;
+        //     });
+
+        //     const requests = await Promise.all(requestsPromises);
+        //     onRequests(requests.filter(r => r !== null) as OracleRequest[]);
+        // });
     } catch (error) {
         logger.error(`[listenForEvents] ${error}`);
     }

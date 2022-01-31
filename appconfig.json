@@ -8,7 +8,7 @@
             "rpc": "https://mainnet.aurora.dev",
             "wssRpc": "wss://1a67ac2cb6d7.relayer.mainnet.partners.aurora.dev",
             "bridgeChainId": 3,
-            "oracleContractAddress": "0xE5222a920E6bE9530C958D17b7e5Df4B51a380d1"
+            "oracleContractAddress": "0xFd6956a74ED7fF3E53Edc8b17168260905a8f407"
         },
         {
             "type": "near",
@@ -28,12 +28,12 @@
             "rpc": "https://goerli.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161",
             "wssRpc": "wss://goerli-light.eth.linkpool.io/ws",
             "bridgeChainId": 4,
-            "oracleContractAddress": "0xE5222a920E6bE9530C958D17b7e5Df4B51a380d1"
+            "oracleContractAddress": "0x19f3E5340d5b0B9E5E1B076e11C9C1572d55349c"
         }
     ],
     "requestListeners": [
         {
-            "contractAddress": "0xE5222a920E6bE9530C958D17b7e5Df4B51a380d1",
+            "contractAddress": "0xFd6956a74ED7fF3E53Edc8b17168260905a8f407",
             "networkId": "aurora",
             "interval": 5000,
             "bridgeChainId": 3
