@@ -85,19 +85,6 @@ export async function listenForEvents(config: EvmConfig, address: string, onRequ
             throw new Error(`Config option wssRpc is required`);
         }
 
-        const provider = new WebSocketProvider(config.wssRpc, {
-            chainId: config.chainId,
-            name: config.chainId.toString(),
-
-        });
-
-        const wallet = new Wallet(config.privateKey, provider);
-
-        const layerZeroInterface = new utils.Interface(layerZeroAbi);
-        const oracleContract = createOracleContract(address, provider);
-
-        const topic = layerZeroInterface.getEventTopic('NotifyOracleOfBlock');
-
         const wssProvider = new web3.providers.WebsocketProvider(config.wssRpc);
         const w3 = new web3(wssProvider);
 
@@ -140,55 +127,6 @@ export async function listenForEvents(config: EvmConfig, address: string, onRequ
             const requests = await Promise.all(requestsPromises);
             onRequests(requests.filter(r => r !== null) as OracleRequest[]);
         });
-        // console.log('[] topic -> ', topic);
-        // oracleContract.on({
-        //     address: address,
-        //     topics: [topic],
-        // }, (params) => {
-        //     console.log('[HEYOOOO] params -> ', params);
-        // })
-
-        // await provider._subscribe('logs', ['logs', {
-        //     address,
-        // }], async (transactions: any[]) => {
-        //     const requestsPromises: Promise<OracleRequest | null>[] = transactions.map(async (tx) => {
-        //         const log = layerZeroInterface.parseLog(tx);
-        //         const blockNum = parseInt(tx.blockNumber);
-        //         await sleep(2000);
-        //         const block = await getBlockByNumber(tx.blockHash, config, 'blockHash');
-
-        //         console.log('[] log -> ', log);
-
-        //         if (log.name !== 'NotifyOracleOfBlock') {
-        //             return null;
-        //         }
-
-        //         if (!block) {
-        //             logger.error(`[listenForEvent] Could not find block ${blockNum} for chainId: ${config.chainId}`);
-        //             return null;
-        //         }
-
-        //         const request: OracleRequest = {
-        //             requestId: new Big(0),
-        //             block,
-        //             args: [],
-        //             confirmationsRequired: new Big(log.args.requiredBlockConfirmations.toString()),
-        //             confirmations: new Big(0),
-        //             fromOracleAddress: address,
-        //             toContractAddress: log.args.layerZeroContract,
-        //             toNetwork: {
-        //                 type: 'evm',
-        //                 bridgeChainId: log.args.chainId,
-        //             },
-        //             type: 'request',
-        //         };
-
-        //         return request;
-        //     });
-
-        //     const requests = await Promise.all(requestsPromises);
-        //     onRequests(requests.filter(r => r !== null) as OracleRequest[]);
-        // });
     } catch (error) {
         logger.error(`[listenForEvents] ${error}`);
     }

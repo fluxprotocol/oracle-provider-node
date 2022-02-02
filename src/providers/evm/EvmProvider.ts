@@ -52,7 +52,11 @@ class EvmProvider extends IProvider {
         this.delayer.onRequestReady(callback);
     }
 
-    async startFetching(oracleContract: string, interval: number): Promise<void> {
+    async startFetching(oracleContract: string): Promise<void> {
+        if (!this.config.wssRpc) {
+            return;
+        }
+
         listenForEvents(this.config, oracleContract, (requests) => {
             requests.forEach(r => this.delayer.addRequest(r));
         });

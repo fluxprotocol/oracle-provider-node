@@ -64,6 +64,6 @@ export async function searchRequests(appConfig: AppConfig, queues: NetworkQueue[
         }
 
         fromQueue.provider.onRequests(onRequest);
-        return fromQueue.provider.startFetching(listenerConfig.contractAddress, listenerConfig.interval);
+        return fromQueue.provider.startFetching(listenerConfig.contractAddress);
     });
 }

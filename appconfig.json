@@ -35,7 +35,6 @@
         {
             "contractAddress": "0xFd6956a74ED7fF3E53Edc8b17168260905a8f407",
             "networkId": "aurora",
-            "interval": 5000,
             "bridgeChainId": 3
         }
     ]

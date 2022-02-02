@@ -13,7 +13,7 @@ export default class IProvider {
 
     init(queues: NetworkQueue[]): Promise<void> { return Promise.resolve() };
     onRequests(callback: (request: OracleRequest) => any) { throw new Error('Not Implemented') }
-    startFetching(oracleContract: string, interval: number): Promise<void> { throw new Error('Not implemented') }
+    startFetching(oracleContract: string): Promise<void> { throw new Error('Not implemented') }
     getBlockByTag(tag: string | number): Promise<Block | null> { throw new Error('Not implemented') }
 
     resolveRequest(oracleContractAddress: string, request: OracleRequest): Promise<string | null> { throw new Error('Not implemented') }
