@@ -1,4 +1,7 @@
 # oracle-provider-node
+
+# ⚠️ DEPRECATED: Please use the newer FPO node: https://github.com/fluxprotocol/fpo-node
+
 Provider node for pushing and settling data requests for first-party price feeds on EVM chains
 
 ## Usage
